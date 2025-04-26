@@ -1,22 +1,30 @@
-// backend/server.js
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');  // Importar CORS
+const cors = require('cors');
 require('dotenv').config();
-const citasRoutes = require('./routes/citas'); // Importar las rutas
+const citasRoutes = require('./routes/citas');
 
 // Crear la instancia de express
 const app = express();
-const PORT = process.env.PORT || 5000; // Usa el puerto 5000 o el que esté definido en .env
+const PORT = process.env.PORT || 5000;
 
-// Middleware para permitir solicitudes CORS desde el frontend
-app.use(cors());  // Permite que las solicitudes de origen cruzado sean aceptadas
+// Configurar CORS para producción (permite solo desde el frontend en Vercel)
+const whitelist = [process.env.FRONTEND_URL]; 
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+};
 
-// Middleware para parsear datos JSON
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Usar las rutas de citas
-app.use('/api', citasRoutes); // Ruta base: /api/citas
+app.use('/api', citasRoutes);
 
 // Conexión a MongoDB
 mongoose.connect(process.env.MONGO_URI)
@@ -25,6 +33,5 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
-
