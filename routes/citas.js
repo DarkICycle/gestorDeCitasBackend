@@ -103,4 +103,24 @@ router.get('/por-especialidad/:especialidadId', async (req, res) => {
   }
 });
 
+// Obtener historial de citas por nombre del paciente
+router.get('/citas/paciente/:nombre', async (req, res) => {
+  try {
+    const { nombre } = req.params;
+    const citas = await Cita.find({ paciente: nombre })
+      .populate('especialidad', 'nombre')
+      .populate('doctor', 'nombre');
+
+    if (citas.length === 0) {
+      return res.status(404).json({ mensaje: 'No se encontraron citas para este paciente' });
+    }
+
+    res.json(citas);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: 'Error al obtener el historial del paciente' });
+  }
+});
+
+
 module.exports = router;
